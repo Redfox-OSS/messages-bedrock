@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Launcher background: a Tide aura in Bedrock style. Blue light falls from the top left, teal from
+  the bottom right, over a deep tide-blue base. Colour inside the surface, no glow.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FF2A6A94"
+        android:pathData="M0,0h108v108h-108z" />
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="24"
+                android:centerY="20"
+                android:gradientRadius="96">
+                <item android:offset="0" android:color="#FF4FA6E6" />
+                <item android:offset="0.5" android:color="#BF4FA6E6" />
+                <item android:offset="1" android:color="#004FA6E6" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="100"
+                android:centerY="100"
+                android:gradientRadius="78">
+                <item android:offset="0" android:color="#FF52C9BA" />
+                <item android:offset="0.5" android:color="#BF52C9BA" />
+                <item android:offset="1" android:color="#0052C9BA" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

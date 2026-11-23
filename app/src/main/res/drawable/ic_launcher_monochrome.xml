@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Themed-icon layer: the Corner bubble in one colour, its text lines cut out (even-odd). -->
+<!--
+  Themed-icon layer: the same line bubble in one colour; the launcher tints it.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Launchers crop the 108-unit canvas to its middle 72, so the art is scaled to 2/3:
-         on the phone the bubble then fills the icon as it did in the full-canvas preview. -->
-    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.667" android:scaleY="0.667">
-        <path
-            android:fillColor="#FFFFFFFF"
-            android:fillType="evenOdd"
-            android:pathData="M50,30H62A16,16 0,0 1,78 46V58A16,16 0,0 1,62 74H30V50A20,20 0,0 1,50 30Z M44.5,47H61.5A2.5,2.5 0,0 1,61.5 52H44.5A2.5,2.5 0,0 1,44.5 47Z M44.5,56H53.5A2.5,2.5 0,0 1,53.5 61H44.5A2.5,2.5 0,0 1,44.5 56Z" />
-    </group>
+    <path
+        android:pathData="M48,39H60A12,12 0,0 1,72 51V57A12,12 0,0 1,60 69H36V51A12,12 0,0 1,48 39Z M47,51.5H61 M47,58.5H55"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.25"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
 </vector>

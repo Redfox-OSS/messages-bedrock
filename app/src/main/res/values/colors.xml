@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Window / splash only, before Compose draws. Mirrors BedrockNeutrals.Basalt background
+    <!-- Window / splash only, before Compose draws. Mirrors the BedrockNeutrals.Basalt background;
          everything in Compose reads BedrockTheme instead. -->
     <color name="window_background">#FF111112</color>
-    <!-- Launcher icon ("Corner", Electric): white bubble on an Electric-blue tile. -->
-    <color name="launcher_background">#FF3D9BFF</color>
-    <color name="launcher_bubble">#FFFFFFFF</color>
 </resources>
