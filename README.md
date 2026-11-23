@@ -13,18 +13,16 @@ original does, installs beside it (its package is `dev.redfox.messages.bedrock`)
 be the default SMS app at a time.
 
 <p align="center">
+  <a href="https://github.com/Redfox-OSS/messages-bedrock/releases/latest"><b>Download the latest APK</b></a>
+  &nbsp;·&nbsp; Android 13+ &nbsp;·&nbsp; No internet permission &nbsp;·&nbsp; GPL-3.0
+</p>
+
+<p align="center">
   <img src="docs/screenshots/inbox.png" alt="Inbox with filter chips, unread badges and the icon-only nav bar with search beside it" width="220" height="489">
   &nbsp;
   <img src="docs/screenshots/thread.png" alt="A conversation with calm bubbles under a frosted top bar and a glass composer" width="220" height="489">
   &nbsp;
   <img src="docs/screenshots/search.png" alt="Search over frosted glass, with the match highlighted" width="220" height="489">
-</p>
-<p align="center">
-  <img src="docs/screenshots/onboarding.png" alt="Setup with a Tide aura welcome card and three steps" width="220" height="489">
-  &nbsp;
-  <img src="docs/screenshots/new-conversation.png" alt="New conversation with the recipient field and contacts" width="220" height="489">
-  &nbsp;
-  <img src="docs/screenshots/settings.png" alt="Settings with grouped rows and the six Bedrock accents" width="220" height="489">
 </p>
 
 <sub>Screenshots use made-up people and messages.</sub>
@@ -52,6 +50,36 @@ be the default SMS app at a time.
   "Open in …" button.
 - **Your accent.** Pick any of Bedrock's six accents (Tide, Iris, Moss, Rose, Ember, Sand) in Settings.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/onboarding.png" alt="Setup with a Tide aura welcome card and three steps" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/new-conversation.png" alt="New conversation with the recipient field and contacts" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/saved.png" alt="Saved tab with a starred message and the Starred / Scheduled control" width="220" height="489">
+</p>
+<p align="center">
+  <img src="docs/screenshots/settings.png" alt="Settings with grouped rows and the six Bedrock accents" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/inbox-rose.png" alt="The inbox in the Rose accent" width="220" height="489">
+</p>
+
+## Design
+
+Messages follows [Bedrock](https://github.com/Redfox-OSS/bedrock)'s rules, and a build check
+(`verifyDesignRules`) keeps feature code on them:
+
+- **Frosted glass with a lit rim** for the top bar, nav bar, composer and search; scrolling content
+  frosts beneath them.
+- **Colour inside surfaces, never glows.** Your messages sit in a soft accent container, theirs on a
+  raised surface; the one aura is the welcome card.
+- **Nothing overshoots.** Every spring is critically damped; timed motion uses one calm curve. Sheets
+  and dialogs ease in and out, and swipe actions settle back without a bounce.
+- **An icon-only nav bar** with a pill selection you can hold and scrub across, which turns compact as
+  you scroll a list.
+- **Sentence case and tabular figures** everywhere, so times and counts never jitter.
+
 ## Privacy
 
 Messages has **no internet permission**. It can't send your messages, contacts or anything else off your
@@ -70,6 +98,20 @@ Releases are signed with the same key as the original Messages; the certificate'
 ```
 8f:cd:2c:a3:fc:50:d0:02:9e:cf:50:3b:5d:e2:73:a5:5b:00:ea:80:98:47:6b:13:6e:99:8e:59:b6:50:61:93
 ```
+
+## Tech stack
+
+| | |
+|---|---|
+| Language | Kotlin 2.2, coroutines and Flow |
+| UI | Jetpack Compose (BOM 2026.02.01) on Bedrock 0.1.0, Haze 1.7 for the glass |
+| Navigation | Navigation 3 |
+| Architecture | MVI per screen (State / Intent / Effect / ViewModel), use cases in `:core:domain` |
+| DI | Hilt |
+| Storage | Android's SMS/MMS provider for messages; Room for the search index and your data (starred, scheduled, pinned, archived); DataStore for settings |
+| Images | Coil 3, local only |
+| MMS | AOSP's PDU parser and composer, vendored in `:core:mms` |
+| Build | AGP 9.2, convention plugins in `build-logic/`, min SDK 33, target and compile SDK 36 |
 
 ## Build
 
