@@ -104,7 +104,7 @@ Releases are signed with the same key as the original Messages; the certificate'
 | | |
 |---|---|
 | Language | Kotlin 2.2, coroutines and Flow |
-| UI | Jetpack Compose (BOM 2026.02.01) on Bedrock 0.1.0, Haze 1.7 for the glass |
+| UI | Jetpack Compose (BOM 2026.02.01) on Bedrock 0.1.1, Haze 1.7 for the glass |
 | Navigation | Navigation 3 |
 | Architecture | MVI per screen (State / Intent / Effect / ViewModel), use cases in `:core:domain` |
 | DI | Hilt |

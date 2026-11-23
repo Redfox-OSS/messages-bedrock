@@ -20,8 +20,8 @@ android {
     defaultConfig {
         // Its own ID, so it installs beside the Obsidian Messages (only one can be the default SMS app).
         applicationId = "dev.redfox.messages.bedrock"
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     signingConfigs {
