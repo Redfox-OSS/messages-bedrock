@@ -18,7 +18,7 @@ be the default SMS app at a time.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/inbox.png" alt="Inbox with filter chips, unread badges and the icon-only nav bar with search beside it" width="220" height="489">
+  <img src="docs/screenshots/inbox.png" alt="Inbox with the title and Settings on one row, filter chips, and the icon-only nav bar with New message and search" width="220" height="489">
   &nbsp;
   <img src="docs/screenshots/thread.png" alt="A conversation with calm bubbles under a frosted top bar and a glass composer" width="220" height="489">
   &nbsp;
@@ -48,7 +48,7 @@ be the default SMS app at a time.
 - **Dual SIM.** A SIM badge in the composer, and a counter for how many SMS parts a long message takes.
 - **Open in app.** Links to well-known services (Play Store, YouTube, Maps, Amazon and more) get an
   "Open in …" button.
-- **Your accent.** Pick any of Bedrock's six accents (Tide, Iris, Moss, Rose, Ember, Sand) in Settings.
+- **Your accent.** Pick any of Bedrock's six accents (Tide, Iris, Moss, Red, Ember, Sand) in Settings.
 
 ## Screenshots
 
@@ -62,7 +62,7 @@ be the default SMS app at a time.
 <p align="center">
   <img src="docs/screenshots/settings.png" alt="Settings with grouped rows and the six Bedrock accents" width="220" height="489">
   &nbsp;
-  <img src="docs/screenshots/inbox-rose.png" alt="The inbox in the Rose accent" width="220" height="489">
+  <img src="docs/screenshots/inbox-red.png" alt="The inbox in the Red accent" width="220" height="489">
 </p>
 
 ## Design
@@ -104,7 +104,7 @@ Releases are signed with the same key as the original Messages; the certificate'
 | | |
 |---|---|
 | Language | Kotlin 2.2, coroutines and Flow |
-| UI | Jetpack Compose (BOM 2026.02.01) on Bedrock 0.1.1, Haze 1.7 for the glass |
+| UI | Jetpack Compose (BOM 2026.02.01) on Bedrock 0.2.0, Haze 1.7 for the glass |
 | Navigation | Navigation 3 |
 | Architecture | MVI per screen (State / Intent / Effect / ViewModel), use cases in `:core:domain` |
 | DI | Hilt |

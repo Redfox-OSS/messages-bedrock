@@ -224,7 +224,7 @@ using Bedrock tokens, in the file listed:
 | `copyToClipboard` | `ThreadScreen.kt` | `LocalClipboard` / `ClipboardManager` directly |
 | `SegmentedPill` | | `SegmentedControl(options: List<String>, selectedIndex, onSelect)` |
 
-`AppAccent` is now `Tide, Iris, Moss, Rose, Ember, Sand` (default `Tide`), mapped with `AppAccent.toBedrock()`;
+`AppAccent` is now `Tide, Iris, Moss, Red, Ember, Sand` (default `Tide`), mapped with `AppAccent.toBedrock()`;
 there is no `toAppAccent()` any more.
 
 **Message bubbles.** Outgoing bubbles use the accent container family (`accentContainerStrong` fill,

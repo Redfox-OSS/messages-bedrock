@@ -31,7 +31,8 @@ class SettingsDataSource @Inject constructor(
     val settings: Flow<AppSettings> = store.data.map { prefs ->
         AppSettings(
             accent = prefs[Keys.Accent]
-                ?.let { name -> AppAccent.entries.firstOrNull { it.name == name } }
+                // "Rose" was renamed Red (Bedrock 0.2.0); keep that choice.
+                ?.let { name -> if (name == "Rose") AppAccent.Red else AppAccent.entries.firstOrNull { it.name == name } }
                 ?: AppAccent.Default,
             onboardingCompleted = prefs[Keys.OnboardingCompleted] ?: false,
             swipeLeft = prefs[Keys.SwipeLeft].toEnum(AppSettings().swipeLeft),

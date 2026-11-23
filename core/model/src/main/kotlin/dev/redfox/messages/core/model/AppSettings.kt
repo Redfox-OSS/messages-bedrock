@@ -5,7 +5,7 @@ enum class AppAccent {
     Tide,
     Iris,
     Moss,
-    Rose,
+    Red,
     Ember,
     Sand;
 

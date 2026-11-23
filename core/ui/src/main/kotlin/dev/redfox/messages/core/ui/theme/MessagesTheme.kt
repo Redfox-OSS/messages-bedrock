@@ -22,7 +22,7 @@ fun AppAccent.toBedrock(): BedrockAccent = when (this) {
     AppAccent.Tide -> BedrockAccent.Tide
     AppAccent.Iris -> BedrockAccent.Iris
     AppAccent.Moss -> BedrockAccent.Moss
-    AppAccent.Rose -> BedrockAccent.Rose
+    AppAccent.Red -> BedrockAccent.Red
     AppAccent.Ember -> BedrockAccent.Ember
     AppAccent.Sand -> BedrockAccent.Sand
 }
