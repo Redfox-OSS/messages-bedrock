@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Launcher background: a Tide aura in Bedrock style. Blue light falls from the top left, teal from
-  the bottom right, over a deep tide-blue base. Colour inside the surface, no glow.
+  Launcher background: blue to deep blue, in Bedrock style. Clear blue light falls from the top
+  left and deep blue gathers at the bottom right, over a mid blue base, so the sweep never turns
+  muddy in the middle. Colour inside the surface, no glow.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
@@ -10,7 +11,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#FF2A6A94"
+        android:fillColor="#FF2F62B8"
         android:pathData="M0,0h108v108h-108z" />
     <path android:pathData="M0,0h108v108h-108z">
         <aapt:attr name="android:fillColor">
@@ -19,9 +20,9 @@
                 android:centerX="24"
                 android:centerY="20"
                 android:gradientRadius="96">
-                <item android:offset="0" android:color="#FF4FA6E6" />
-                <item android:offset="0.5" android:color="#BF4FA6E6" />
-                <item android:offset="1" android:color="#004FA6E6" />
+                <item android:offset="0" android:color="#FF4E9CEA" />
+                <item android:offset="0.5" android:color="#BF4E9CEA" />
+                <item android:offset="1" android:color="#004E9CEA" />
             </gradient>
         </aapt:attr>
     </path>
@@ -32,9 +33,9 @@
                 android:centerX="100"
                 android:centerY="100"
                 android:gradientRadius="78">
-                <item android:offset="0" android:color="#FF52C9BA" />
-                <item android:offset="0.5" android:color="#BF52C9BA" />
-                <item android:offset="1" android:color="#0052C9BA" />
+                <item android:offset="0" android:color="#FF2440A8" />
+                <item android:offset="0.5" android:color="#BF2440A8" />
+                <item android:offset="1" android:color="#002440A8" />
             </gradient>
         </aapt:attr>
     </path>

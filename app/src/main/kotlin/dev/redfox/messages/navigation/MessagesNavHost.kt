@@ -49,7 +49,6 @@ fun MessagesNavHost(
                     ConversationsRoute(
                         onOpenThread = { navigator.navigate(ThreadKey(it)) },
                         onOpenSettings = { navigator.navigate(SettingsKey) },
-                        onNewMessage = { navigator.navigate(NewConversationKey()) },
                     )
                 }
             }

@@ -44,7 +44,7 @@ import dev.redfox.messages.feature.thread.ThreadKey
 import dev.redfox.messages.feature.thread.newchat.NewConversationKey
 import dev.redfox.messages.navigation.MessagesNavHost
 import dev.redfox.messages.navigation.SearchItem
-import dev.redfox.messages.navigation.TabItems
+import dev.redfox.messages.navigation.BarItems
 import dev.redfox.messages.navigation.Tabs
 import dev.redfox.messages.navigation.rememberNavigator
 import dev.redfox.bedrock.effects.LocalHazeState
@@ -169,9 +169,13 @@ private fun MessagesShell(
                 fadeOut(tween(BrDurations.Fade, easing = BrMotion.Calm)),
         ) {
             BrNavBar(
-                items = TabItems,
+                items = BarItems,
                 selectedIndex = selectedTab,
-                onSelect = { navigator.selectTab(Tabs[it].key) },
+                onSelect = { index ->
+                    // Past the tabs is New message: open the composer; the pill settles back.
+                    val tab = Tabs.getOrNull(index)
+                    if (tab != null) navigator.selectTab(tab.key) else navigator.navigate(NewConversationKey())
+                },
                 accessory = SearchItem,
                 onAccessory = { searchOpen = true },
                 compact = compactNav.compact,

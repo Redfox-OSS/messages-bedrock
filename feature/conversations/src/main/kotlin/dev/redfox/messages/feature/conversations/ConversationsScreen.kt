@@ -1,5 +1,16 @@
 package dev.redfox.messages.feature.conversations
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import dev.redfox.bedrock.motion.BrDurations
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.heightIn
+import dev.redfox.bedrock.components.TopBarHeight
+import dev.redfox.bedrock.motion.SwapText
 import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -123,7 +134,6 @@ private val AccessPermissions = arrayOf(Manifest.permission.READ_SMS, Manifest.p
 fun ConversationsRoute(
     onOpenThread: (threadId: Long) -> Unit,
     onOpenSettings: () -> Unit,
-    onNewMessage: () -> Unit,
     viewModel: ConversationsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -144,7 +154,6 @@ fun ConversationsRoute(
         state = state,
         conversations = conversations,
         onOpenSettings = onOpenSettings,
-        onNewMessage = onNewMessage,
         onIntent = viewModel::dispatch,
     )
 }
@@ -154,7 +163,6 @@ fun ConversationsScreen(
     state: ConversationsState,
     conversations: LazyPagingItems<ConversationItem>,
     onOpenSettings: () -> Unit,
-    onNewMessage: () -> Unit,
     onIntent: (ConversationsIntent) -> Unit,
 ) {
     val colors = BedrockTheme.colors
@@ -174,10 +182,14 @@ fun ConversationsScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().glassSource(),
-                contentPadding = PaddingValues(top = topBarClearance(), bottom = brNavClearance()),
+                contentPadding = PaddingValues(top = statusBarTop(), bottom = brNavClearance()),
             ) {
                 item(key = "title", contentType = "title") {
-                    BrLargeTitle(title = title, collapse = collapse)
+                    InboxHeader(
+                        title = title,
+                        collapse = collapse,
+                        actions = { InboxActions(state, onIntent, onOpenSettings) },
+                    )
                 }
                 item(key = "filters", contentType = "filters") {
                     FilterRow(selected = state.filter, onIntent = onIntent)
@@ -241,29 +253,15 @@ fun ConversationsScreen(
             collapse = collapse,
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
-            AnimatedContent(
-                targetState = state.isSelecting,
-                transitionSpec = { BrTransitions.swap },
-                label = "inboxActions",
-            ) { selecting ->
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (selecting) {
-                        SelectionActions(state, onIntent)
-                    } else {
-                        BrIconButton(
-                            painterResource(R.drawable.ic_edit_square),
-                            contentDescription = "New message",
-                            onClick = onNewMessage,
-                            variant = IconButtonVariant.Glass,
-                        )
-                        BrIconButton(
-                            painterResource(R.drawable.ic_settings),
-                            contentDescription = "Settings",
-                            onClick = onOpenSettings,
-                            variant = IconButtonVariant.Glass,
-                        )
-                    }
-                }
+            // The header row carries the actions while it's on screen; the bar takes them over
+            // once that row has slid under it, so there's only ever one set to tap.
+            val showActions by remember { derivedStateOf { collapse.value > 0.5f } }
+            AnimatedVisibility(
+                visible = showActions,
+                enter = fadeIn(tween(BrDurations.Swap, easing = BrMotion.Calm)),
+                exit = fadeOut(tween(BrDurations.Fade)),
+            ) {
+                InboxActions(state, onIntent, onOpenSettings)
             }
         }
     }
@@ -282,6 +280,62 @@ fun ConversationsScreen(
         onConfirm = { onIntent(ConversationsIntent.ConfirmDelete) },
         destructive = true,
     )
+}
+
+/** The status bar's height: the inbox header sits right under it, in the top bar's place. */
+@Composable
+private fun statusBarTop(): Dp = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+/**
+ * The inbox's large title with its actions on the same row, where a page's top bar would be. It
+ * fades as the list scrolls under the frosted bar, which then shows the small title and the
+ * actions. While selecting, the count replaces the title in a smaller size so the four selection
+ * actions fit beside it.
+ */
+@Composable
+private fun InboxHeader(title: String, collapse: State<Float>, actions: @Composable () -> Unit) {
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
+    val selecting = title != "Messages"
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = TopBarHeight)
+            .padding(start = BrSpacing.Gutter, end = 12.dp, bottom = BrSpacing.L)
+            .graphicsLayer { alpha = 1f - collapse.value },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SwapText(
+            text = title,
+            style = if (selecting) type.headline else type.title,
+            color = colors.textPrimary,
+            modifier = Modifier.weight(1f).revealOnEnter(0),
+        )
+        actions()
+    }
+}
+
+/** Settings, or the bulk actions while selecting; in the header row and later the top bar. */
+@Composable
+private fun InboxActions(state: ConversationsState, onIntent: (ConversationsIntent) -> Unit, onOpenSettings: () -> Unit) {
+    AnimatedContent(
+        targetState = state.isSelecting,
+        transitionSpec = { BrTransitions.swap },
+        label = "inboxActions",
+    ) { selecting ->
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (selecting) {
+                SelectionActions(state, onIntent)
+            } else {
+                BrIconButton(
+                    painterResource(R.drawable.ic_settings),
+                    contentDescription = "Settings",
+                    onClick = onOpenSettings,
+                    variant = IconButtonVariant.Glass,
+                )
+            }
+        }
+    }
 }
 
 /** The top bar's bulk actions while selecting. Labels follow the selection, like the swipes do. */
