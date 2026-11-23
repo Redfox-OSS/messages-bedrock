@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.register
 /**
  * A `:feature:*` module: presentation only (State / Intent / Effect / ViewModel / Screen + its
  * nav entry). Depends on the shared core layers, never on another feature, and must follow the
- * Obsidian design rules (checked by [VerifyDesignRulesTask] before every build).
+ * Bedrock design rules (checked by [VerifyDesignRulesTask] before every build).
  */
 class AndroidFeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {

@@ -7,9 +7,8 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,22 +18,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -42,25 +36,22 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import dev.redfox.bedrock.components.AuraCard
+import dev.redfox.bedrock.components.BrButton
+import dev.redfox.bedrock.components.BrCheckbox
+import dev.redfox.bedrock.components.IconTile
+import dev.redfox.bedrock.components.ListGroup
+import dev.redfox.bedrock.components.ListRow
+import dev.redfox.bedrock.components.SectionHeader
+import dev.redfox.bedrock.effects.rememberAura
+import dev.redfox.bedrock.motion.BrTransitions
+import dev.redfox.bedrock.motion.RevealColumn
+import dev.redfox.bedrock.motion.revealOnEnter
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import dev.redfox.messages.core.model.DeviceSetupStatus
 import dev.redfox.messages.core.ui.R
 import dev.redfox.messages.core.ui.mvi.CollectEffects
-import dev.redfox.obsidian.components.ObCard
-import dev.redfox.obsidian.components.ObCheckbox
-import dev.redfox.obsidian.components.ObDivider
-import dev.redfox.obsidian.components.ObListRow
-import dev.redfox.obsidian.components.PrimaryButton
-import dev.redfox.obsidian.components.SectionLabel
-import dev.redfox.obsidian.effects.ambientFloat
-import dev.redfox.obsidian.effects.breathingGlow
-import dev.redfox.obsidian.motion.ExpandEnter
-import dev.redfox.obsidian.motion.CollapseExit
-import dev.redfox.obsidian.motion.RevealColumn
-import dev.redfox.obsidian.motion.revealOnEnter
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
-import androidx.compose.animation.AnimatedVisibility
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -109,41 +100,22 @@ fun OnboardingScreen(
     state: OnboardingState,
     onIntent: (OnboardingIntent) -> Unit,
 ) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
     Box(Modifier.fillMaxSize().background(colors.background)) {
         Column(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = ScreenGutter)
-                .padding(top = 56.dp, bottom = 160.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = BrSpacing.Gutter)
+                .padding(top = BrSpacing.XXL, bottom = 160.dp),
         ) {
-            HeroBadge()
-            Spacer(Modifier.height(ObSpacing.XL))
-            Text(
-                "Messages",
-                style = type.title,
-                color = colors.textPrimary,
-                modifier = Modifier.revealOnEnter(1)
-            )
-            Spacer(Modifier.height(ObSpacing.XS))
-            Text(
-                "Fast, private SMS & MMS. Three quick steps and you're in.",
-                style = type.body,
-                color = colors.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.revealOnEnter(2)
-            )
-            Spacer(Modifier.height(ObSpacing.XXL))
-            RevealColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(ObSpacing.M)
-            ) {
-                SectionLabel("Setup")
-                SetupCard(status = state.status, onIntent = onIntent)
+            WelcomeCard(Modifier.revealOnEnter(0))
+            Spacer(Modifier.height(BrSpacing.Section))
+            RevealColumn(modifier = Modifier.fillMaxWidth()) {
+                SectionHeader("Setup")
+                SetupGroup(status = state.status, onIntent = onIntent)
             }
         }
 
@@ -153,74 +125,80 @@ fun OnboardingScreen(
                 .fillMaxWidth()
                 .background(colors.background)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(horizontal = ScreenGutter, vertical = ObSpacing.L),
+                .padding(horizontal = BrSpacing.Gutter, vertical = BrSpacing.L),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            PrimaryButton(
+            BrButton(
                 text = "Continue",
                 onClick = { onIntent(OnboardingIntent.ContinueClicked) },
+                modifier = Modifier.fillMaxWidth(),
                 enabled = state.canContinue,
             )
-            AnimatedVisibility(visible = !state.status.isDefaultSmsApp, enter = ExpandEnter, exit = CollapseExit) {
+            AnimatedVisibility(
+                visible = !state.status.isDefaultSmsApp,
+                enter = BrTransitions.expandIn,
+                exit = BrTransitions.collapseOut,
+            ) {
                 Text(
                     "Set Messages as your default SMS app to continue",
-                    style = type.label,
+                    style = type.caption,
                     color = colors.textTertiary,
-                    modifier = Modifier.padding(top = ObSpacing.M)
+                    modifier = Modifier.padding(top = BrSpacing.M)
                 )
             }
         }
     }
 }
 
+/** The one hero on the screen: the app's name and promise, on the accent's aura. */
 @Composable
-private fun HeroBadge() {
-    val colors = ObsidianTheme.colors
-    // The EmptyState badge recipe: an idle hero that floats while its halo breathes.
-    Box(
-        Modifier
-            .revealOnEnter(0)
-            .ambientFloat()
-            .breathingGlow(colors.accent, CircleShape)
-            .size(88.dp)
-            .clip(CircleShape)
-            .background(colors.accentContainer)
-            .border(1.dp, colors.accentBorder, CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
+private fun WelcomeCard(modifier: Modifier = Modifier) {
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
+    AuraCard(aura = rememberAura(colors.accent), modifier = modifier.fillMaxWidth()) {
+        IconTile(
             painterResource(R.drawable.ic_chat),
-            contentDescription = null,
-            tint = colors.accentLight,
-            modifier = Modifier.size(32.dp)
+            tint = colors.textPrimary,
+            container = colors.glass,
+            size = 48.dp,
+            iconSize = 24.dp,
+        )
+        Spacer(Modifier.height(BrSpacing.XL))
+        Text("Messages", style = type.title, color = colors.textPrimary)
+        Spacer(Modifier.height(BrSpacing.XS))
+        Text(
+            "Fast, private SMS & MMS. Three quick steps and you're in.",
+            style = type.body,
+            color = colors.textPrimary.copy(alpha = 0.8f),
         )
     }
 }
 
 @Composable
-private fun SetupCard(status: DeviceSetupStatus, onIntent: (OnboardingIntent) -> Unit) {
-    ObCard(Modifier.fillMaxWidth()) {
+private fun SetupGroup(status: DeviceSetupStatus, onIntent: (OnboardingIntent) -> Unit) {
+    ListGroup {
         SetupRow(
             icon = R.drawable.ic_sms,
             title = "Default SMS app",
             pending = "Required to send and receive texts",
             done = status.isDefaultSmsApp,
+            divider = true,
             onClick = { onIntent(OnboardingIntent.DefaultSmsClicked) },
         )
-        ObDivider(Modifier.padding(vertical = ObSpacing.M))
         SetupRow(
             icon = R.drawable.ic_contacts,
             title = "Contacts & notifications",
             pending = "Names, and alerts for new texts",
             done = status.hasRuntimePermissions,
+            divider = true,
             onClick = { onIntent(OnboardingIntent.PermissionsClicked) },
         )
-        ObDivider(Modifier.padding(vertical = ObSpacing.M))
         SetupRow(
             icon = R.drawable.ic_battery_full,
             title = "Run in background",
             pending = "So texts are never delayed",
             done = status.isIgnoringBatteryOptimizations,
+            divider = false,
             onClick = { onIntent(OnboardingIntent.BatteryClicked) },
         )
     }
@@ -232,15 +210,23 @@ private fun SetupRow(
     title: String,
     pending: String,
     done: Boolean,
+    divider: Boolean,
     onClick: () -> Unit,
 ) {
-    ObListRow(
+    val colors = BedrockTheme.colors
+    ListRow(
         title = title,
-        icon = icon,
         subtitle = if (done) "Done" else pending,
-        iconTint = if (done) ObsidianTheme.colors.accentLight else ObsidianTheme.colors.textSecondary,
-        titleStyleLarge = true,
+        leading = {
+            IconTile(
+                painterResource(icon),
+                tint = if (done) colors.accentSoft else colors.textSecondary,
+                container = if (done) colors.accentContainer else colors.surfaceHigh,
+            )
+        },
+        // The row and the box do the same thing: open the step that grants it.
+        trailing = { BrCheckbox(checked = done, onCheckedChange = { onClick() }) },
+        divider = divider,
         onClick = onClick,
-        trailing = { ObCheckbox(checked = done, onCheckedChange = null) },
     )
 }

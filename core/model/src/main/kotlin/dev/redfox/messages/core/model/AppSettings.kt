@@ -1,15 +1,16 @@
 package dev.redfox.messages.core.model
 
-/** The accent the user picked. Maps 1:1 onto the Obsidian accent presets in `:core:ui`. */
+/** The accent the user picked. Maps 1:1 onto the Bedrock accent presets in `:core:ui`. */
 enum class AppAccent {
-    Crimson,
-    Electric,
-    Solar,
-    Emerald,
-    Luminous;
+    Tide,
+    Iris,
+    Moss,
+    Rose,
+    Ember,
+    Sand;
 
     companion object {
-        val Default = Electric
+        val Default = Tide
     }
 }
 

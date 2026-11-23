@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.util.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,9 +36,9 @@ import androidx.core.graphics.drawable.toBitmap
 import dev.redfox.messages.core.ui.R
 import dev.redfox.messages.core.ui.format.BrandLink
 import dev.redfox.messages.core.ui.format.LinkBrand
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
+import dev.redfox.bedrock.effects.pressable
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -58,7 +57,7 @@ fun BrandLinkButtons(
 ) {
     Column(
         modifier,
-        verticalArrangement = Arrangement.spacedBy(ObSpacing.XS),
+        verticalArrangement = Arrangement.spacedBy(BrSpacing.XS),
         horizontalAlignment = horizontalAlignment,
     ) {
         links.forEach { link -> BrandLinkButton(link, onClick = { onOpen(link) }) }
@@ -67,22 +66,21 @@ fun BrandLinkButtons(
 
 @Composable
 private fun BrandLinkButton(link: BrandLink, onClick: () -> Unit) {
-    val colors = ObsidianTheme.colors
+    val colors = BedrockTheme.colors
     Row(
         Modifier
             .widthIn(max = 300.dp)
-            .pressable(pressedScale = 0.96f, haptic = HapticFeedbackType.ContextClick, onClick = onClick)
+            .pressable(pressedScale = 0.97f, haptic = HapticFeedbackType.ContextClick, onClick = onClick)
             .clip(CircleShape)
-            .background(colors.card)
-            .border(1.dp, colors.borderStrong, CircleShape)
-            .padding(start = ObSpacing.XS, end = ObSpacing.M, top = ObSpacing.XS, bottom = ObSpacing.XS),
+            .background(colors.surfaceRaised)
+            .padding(start = BrSpacing.XS, end = BrSpacing.M, top = BrSpacing.XS, bottom = BrSpacing.XS),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(ObSpacing.S),
+        horizontalArrangement = Arrangement.spacedBy(BrSpacing.S),
     ) {
         BrandLogo(link.brand, LogoSize + 8.dp)
         Text(
             "Open in ${link.brand.name}",
-            style = ObsidianTheme.typography.labelStrong,
+            style = BedrockTheme.typography.label,
             color = colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -113,7 +111,7 @@ private fun BrandLogo(brand: LinkBrand, size: Dp) {
         Box(Modifier.size(size).clip(CircleShape).background(tile), contentAlignment = Alignment.Center) {
             Text(
                 brand.name.take(1),
-                style = ObsidianTheme.typography.labelStrong,
+                style = BedrockTheme.typography.label,
                 color = if (tile.luminance() > 0.5f) Color.Black else Color.White,
             )
         }

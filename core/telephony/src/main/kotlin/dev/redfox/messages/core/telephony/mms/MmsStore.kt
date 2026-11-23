@@ -1,5 +1,6 @@
 package dev.redfox.messages.core.telephony.mms
 
+import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -40,6 +41,9 @@ data class OutgoingPart(val contentType: String, val data: ByteArray, val name: 
  * leans on framework internals. Blocking; call from an IO dispatcher.
  */
 @Singleton
+// Phone-state reads (own number, active SIMs) sit in runCatching: without the permission they
+// throw, and the fallback is used. Lint can't see that.
+@SuppressLint("MissingPermission")
 class MmsStore @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {

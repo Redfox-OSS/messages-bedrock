@@ -4,17 +4,28 @@
 
 Messages is a free, open-source SMS and MMS app for Android. It replaces your phone's default messaging
 app, and it has no internet permission, so your messages never leave the phone. It's part of
-[Redfox OSS](https://github.com/Redfox-OSS) and built on the [Obsidian](https://github.com/Redfox-OSS/obsidian)
-design system: always dark, one vivid accent, soft glows, frosted glass and springy motion.
+[Redfox OSS](https://github.com/Redfox-OSS) and built on the [Bedrock](https://github.com/Redfox-OSS/bedrock)
+design system: dark surfaces, frosted glass with a lit rim, mid-bright colour that lives inside surfaces,
+and calm motion where nothing overshoots.
 
-<table>
-  <tr>
-    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_inbox.png" width="200" alt="Inbox"></td>
-    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_thread.png" width="200" alt="A conversation"></td>
-    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_search.png" width="200" alt="Search"></td>
-    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_accent.png" width="200" alt="Inbox in the Crimson accent"></td>
-  </tr>
-</table>
+This is the Bedrock edition of [Messages](https://github.com/Redfox-OSS/messages). It does everything the
+original does, installs beside it (its package is `dev.redfox.messages.bedrock`), and only one of them can
+be the default SMS app at a time.
+
+<p align="center">
+  <img src="docs/screenshots/inbox.png" alt="Inbox with filter chips, unread badges and the icon-only nav bar with search beside it" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/thread.png" alt="A conversation with calm bubbles under a frosted top bar and a glass composer" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/search.png" alt="Search over frosted glass, with the match highlighted" width="220" height="489">
+</p>
+<p align="center">
+  <img src="docs/screenshots/onboarding.png" alt="Setup with a Tide aura welcome card and three steps" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/new-conversation.png" alt="New conversation with the recipient field and contacts" width="220" height="489">
+  &nbsp;
+  <img src="docs/screenshots/settings.png" alt="Settings with grouped rows and the six Bedrock accents" width="220" height="489">
+</p>
 
 <sub>Screenshots use made-up people and messages.</sub>
 
@@ -39,7 +50,7 @@ design system: always dark, one vivid accent, soft glows, frosted glass and spri
 - **Dual SIM.** A SIM badge in the composer, and a counter for how many SMS parts a long message takes.
 - **Open in app.** Links to well-known services (Play Store, YouTube, Maps, Amazon and more) get an
   "Open in …" button.
-- **Your accent.** Pick any Obsidian accent colour in Settings.
+- **Your accent.** Pick any of Bedrock's six accents (Tide, Iris, Moss, Rose, Ember, Sand) in Settings.
 
 ## Privacy
 
@@ -53,11 +64,8 @@ No analytics, no ads, no crash reporting, no accounts.
 
 Messages needs **Android 13 or newer**. On first launch it asks to become the default SMS app.
 
-- **F-Droid:** submitted, not listed yet. This README will link to it once it's in.
-- **GitHub:** download the APK from the [Releases page](https://github.com/Redfox-OSS/messages/releases).
-
-Both are the same APK with the same signature (F-Droid verifies that our build matches its own), so you
-can switch between them and update without reinstalling. The signing certificate's SHA-256 is:
+Download the APK from the [Releases page](https://github.com/Redfox-OSS/messages-bedrock/releases).
+Releases are signed with the same key as the original Messages; the certificate's SHA-256 is:
 
 ```
 8f:cd:2c:a3:fc:50:d0:02:9e:cf:50:3b:5d:e2:73:a5:5b:00:ea:80:98:47:6b:13:6e:99:8e:59:b6:50:61:93
@@ -68,18 +76,18 @@ can switch between them and update without reinstalling. The signing certificate
 You need JDK 17 or newer (21 for releases) and the Android SDK with compile SDK 36.1.
 
 ```bash
-git clone https://github.com/Redfox-OSS/messages.git
-cd messages
+git clone https://github.com/Redfox-OSS/messages-bedrock.git
+cd messages-bedrock
 ./gradlew installDebug
 ```
 
-The debug build installs next to the release one (its package name ends in `.debug`). Obsidian
-downloads from the Redfox OSS Maven repository on the first build. To build it from source instead,
-as F-Droid does, clone with `--recurse-submodules` and add `-Pobsidian.fromSource=true`.
+The debug build installs next to the release one (its package name ends in `.debug`). Bedrock downloads
+from its Maven repository (https://redfox-oss.github.io/bedrock/maven) on the first build. To try a
+Bedrock change before it's released, check Bedrock out next to this repository as `../Bedrock` and add
+`-PlocalBedrock`.
 
 `./gradlew assembleRelease` signs with the key in a git-ignored `keystore.properties` when there is one,
-and leaves the APK unsigned otherwise. Published releases come from `tools/release.sh`; see
-[fdroid/README.md](fdroid/README.md) for how releases and F-Droid work.
+and leaves the APK unsigned otherwise. Published releases come from `tools/release.sh`.
 
 ### Project layout
 
@@ -88,9 +96,8 @@ and leaves the APK unsigned otherwise. Published releases come from `tools/relea
 | `app/` | The app shell: navigation, the nav bar, settings wiring, receivers |
 | `feature/*` | One module per screen: onboarding, conversations, thread, search, starred, scheduled, settings |
 | `core/*` | Shared layers: model, domain (use cases), data, database (Room), datastore, telephony, MMS (vendored AOSP PDU code), contacts, UI |
-| `build-logic/` | Gradle convention plugins, including the check that keeps feature code on Obsidian's design rules |
-| `external/obsidian` | The Obsidian design system, as a submodule for from-source builds |
-| `fastlane/` | Store listing and screenshots |
+| `build-logic/` | Gradle convention plugins, including the check that keeps feature code on Bedrock's design rules (tokens only, no ripples, no glows, nothing that overshoots) |
+| `docs/` | How the app moved from Obsidian to Bedrock, and the README screenshots |
 
 ## Known limitations
 
@@ -115,5 +122,5 @@ Issues and pull requests are welcome. Please read the org-wide guides first:
 
 ## License
 
-Messages is licensed under the [Apache License 2.0](LICENSE). It includes AOSP's MMS PDU code, also
-Apache 2.0; see [core/mms/NOTICE](core/mms/NOTICE).
+Messages is licensed under the [GNU General Public License v3.0](LICENSE). It includes AOSP's MMS PDU
+code, which is Apache 2.0; see [core/mms/NOTICE](core/mms/NOTICE).

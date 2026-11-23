@@ -9,7 +9,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("com.android.library")
         extensions.configure<LibraryExtension> {
-            // Obsidian is built against 36.1, and AAR metadata requires consumers to match.
+            // Bedrock is built against 36.1, and AAR metadata requires consumers to match.
             compileSdk {
                 version = release(Sdk.COMPILE) { minorApiLevel = Sdk.COMPILE_MINOR }
             }

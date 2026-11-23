@@ -1,56 +1,42 @@
 package dev.redfox.messages.feature.thread
 
-import android.content.Intent
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.DisposableEffect
-import androidx.core.content.ContextCompat
-import dev.redfox.messages.core.model.OutgoingAttachment
-import dev.redfox.messages.core.ui.platform.VoiceNote
-import dev.redfox.messages.core.ui.platform.VoiceRecorder
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
-import dev.redfox.messages.core.model.ScheduledMessage
-import dev.redfox.messages.core.ui.R
-import dev.redfox.obsidian.components.ObSheet
-import dev.redfox.messages.core.ui.components.SchedulePicker
-import dev.redfox.obsidian.components.SheetAction
-import dev.redfox.messages.core.ui.components.formatScheduleTime
-import dev.redfox.obsidian.platform.copyToClipboard
-import dev.redfox.messages.core.ui.platform.rememberCaller
-import dev.redfox.obsidian.components.HeaderIconButton
-import dev.redfox.obsidian.components.ObAlertDialog
-import dev.redfox.obsidian.effects.glassEffect
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,7 +49,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,18 +61,35 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import dev.redfox.bedrock.components.BrDialog
+import dev.redfox.bedrock.components.BrIconButton
+import dev.redfox.bedrock.components.BrSheet
+import dev.redfox.bedrock.components.BrTopBar
+import dev.redfox.bedrock.components.IconButtonVariant
+import dev.redfox.bedrock.components.SheetAction
+import dev.redfox.bedrock.components.topBarClearance
+import dev.redfox.bedrock.effects.glass
+import dev.redfox.bedrock.effects.glassSource
+import dev.redfox.bedrock.motion.revealOnEnter
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrShapes
+import dev.redfox.bedrock.theme.BrSpacing
+import dev.redfox.messages.core.model.Message
+import dev.redfox.messages.core.model.OutgoingAttachment
+import dev.redfox.messages.core.model.ScheduledMessage
+import dev.redfox.messages.core.ui.R
 import dev.redfox.messages.core.ui.components.BubblePosition
 import dev.redfox.messages.core.ui.components.ComposerBar
 import dev.redfox.messages.core.ui.components.ComposerNotice
-import dev.redfox.obsidian.components.DateDivider
-import dev.redfox.obsidian.components.DetailPage
 import dev.redfox.messages.core.ui.components.MessageBubble
 import dev.redfox.messages.core.ui.components.RichCardBubble
+import dev.redfox.messages.core.ui.components.SchedulePicker
+import dev.redfox.messages.core.ui.components.formatScheduleTime
 import dev.redfox.messages.core.ui.format.TimeFormat
 import dev.redfox.messages.core.ui.mvi.CollectEffects
-import dev.redfox.obsidian.effects.glassSource
-import dev.redfox.obsidian.motion.revealOnEnter
-import dev.redfox.obsidian.theme.ObSpacing
+import dev.redfox.messages.core.ui.platform.VoiceNote
+import dev.redfox.messages.core.ui.platform.VoiceRecorder
+import dev.redfox.messages.core.ui.platform.rememberCaller
 import kotlinx.serialization.Serializable
 
 /**
@@ -187,26 +193,20 @@ fun ThreadScreen(
     val density = LocalDensity.current
     // The composer floats over the list; the list's end padding follows its real height.
     var composerHeight by remember { mutableIntStateOf(0) }
+    // A chat starts at the bottom and has no large title: the bar is always frosted, title showing.
+    val collapse = remember { mutableFloatStateOf(1f) }
 
-    DetailPage(
-        title = state.title,
-        onBack = onBack,
-        actions = {
-            if (state.callableNumber != null) {
-                HeaderIconButton(R.drawable.ic_call, contentDescription = "Call", onClick = { onIntent(ThreadIntent.CallClicked) })
-            }
-        },
-    ) { padding ->
+    Box(Modifier.fillMaxSize()) {
         // The keyboard pushes list and composer up together.
         Box(Modifier.fillMaxSize().imePadding()) {
             LazyColumn(
                 state = listState,
                 reverseLayout = true,
                 modifier = Modifier.glassSource().fillMaxSize(),
-                // Reversed: "top" padding sits under the header, "bottom" above the composer.
+                // Reversed: "top" padding sits under the top bar, "bottom" above the composer.
                 contentPadding = PaddingValues(
-                    top = padding.calculateTopPadding(),
-                    bottom = with(density) { composerHeight.toDp() } + ObSpacing.S,
+                    top = topBarClearance(),
+                    bottom = with(density) { composerHeight.toDp() } + BrSpacing.S,
                 ),
             ) {
                 items(
@@ -233,7 +233,7 @@ fun ThreadScreen(
                                 rich = rich,
                                 timeLabel = layout.timeLabel,
                                 onSuggestion = { onIntent(ThreadIntent.SuggestionClicked(it)) },
-                                modifier = reveal.padding(top = ObSpacing.S),
+                                modifier = reveal.padding(top = BrSpacing.S),
                             ) else MessageBubble(
                                 message = row.message,
                                 position = layout.position,
@@ -249,8 +249,8 @@ fun ThreadScreen(
                                 onCopyOtp = { onIntent(ThreadIntent.CopyOtp(it)) },
                                 modifier = reveal.padding(
                                     // Tight gap inside a run, a breath between runs.
-                                    top = if (layout.position == BubblePosition.Middle || layout.position == BubblePosition.Last) 2.dp
-                                    else ObSpacing.S,
+                                    top = if (layout.position == BubblePosition.Middle || layout.position == BubblePosition.Last) BrSpacing.XXS
+                                    else BrSpacing.S,
                                 ),
                             )
                         }
@@ -262,8 +262,8 @@ fun ThreadScreen(
                 .align(Alignment.BottomCenter)
                 .onSizeChanged { composerHeight = it.height }
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(bottom = ObSpacing.S)
-            if (state.canReply) Column(composerModifier, verticalArrangement = Arrangement.spacedBy(ObSpacing.XS)) {
+                .padding(bottom = BrSpacing.S)
+            if (state.canReply) Column(composerModifier, verticalArrangement = Arrangement.spacedBy(BrSpacing.XS)) {
                 state.scheduled.forEach { scheduled ->
                     ScheduledStrip(
                         scheduled = scheduled,
@@ -294,65 +294,130 @@ fun ThreadScreen(
                 ComposerNotice("This sender doesn't accept replies", composerModifier)
             }
         }
-    }
 
-    state.actionsFor?.let { message ->
-        ObSheet(onDismiss = { onIntent(ThreadIntent.DismissActions) }) {
-            if (message.body.isNotEmpty()) {
-                SheetAction("Copy text", R.drawable.ic_content_copy, onClick = { onIntent(ThreadIntent.CopyMessage) })
+        BrTopBar(
+            title = state.title,
+            collapse = collapse,
+            modifier = Modifier.align(Alignment.TopCenter),
+            onBack = onBack,
+        ) {
+            if (state.callableNumber != null) {
+                BrIconButton(
+                    painterResource(R.drawable.ic_call),
+                    contentDescription = "Call",
+                    onClick = { onIntent(ThreadIntent.CallClicked) },
+                    variant = IconButtonVariant.Glass,
+                )
             }
-            val starred = message.key in state.starredKeys
-            SheetAction(
-                if (starred) "Unstar" else "Star",
-                if (starred) R.drawable.ic_star_filled else R.drawable.ic_star,
-                onClick = { onIntent(ThreadIntent.ToggleStar) },
-            )
-            SheetAction("Delete", R.drawable.ic_delete, destructive = true, onClick = { onIntent(ThreadIntent.DeleteMessage) })
         }
     }
-    if (state.confirmDelete != null) {
-        ObAlertDialog(
-            title = "Delete this message?",
-            text = "It's removed from this phone for good.",
-            confirmLabel = "Delete",
-            destructive = true,
-            onConfirm = { onIntent(ThreadIntent.ConfirmDelete) },
-            onDismiss = { onIntent(ThreadIntent.CancelDelete) },
-        )
+
+    // The sheet stays composed so it can glide out; it keeps showing the last message while it does.
+    val lastActions = remember { arrayOfNulls<Message>(1) }
+    val sheetMessage = state.actionsFor?.also { lastActions[0] = it } ?: lastActions[0]
+    BrSheet(visible = state.actionsFor != null, onDismiss = { onIntent(ThreadIntent.DismissActions) }) {
+        if (sheetMessage != null) {
+            if (sheetMessage.body.isNotEmpty()) {
+                SheetAction(
+                    "Copy text",
+                    onClick = { onIntent(ThreadIntent.CopyMessage) },
+                    icon = painterResource(R.drawable.ic_content_copy),
+                )
+            }
+            val starred = sheetMessage.key in state.starredKeys
+            SheetAction(
+                if (starred) "Unstar" else "Star",
+                onClick = { onIntent(ThreadIntent.ToggleStar) },
+                icon = painterResource(if (starred) R.drawable.ic_star_filled else R.drawable.ic_star),
+            )
+            SheetAction(
+                "Delete",
+                onClick = { onIntent(ThreadIntent.DeleteMessage) },
+                icon = painterResource(R.drawable.ic_delete),
+                destructive = true,
+            )
+        }
     }
-    if (state.showSchedulePicker) {
-        SchedulePicker(onPick = { onIntent(ThreadIntent.ScheduleAt(it)) }, onDismiss = { onIntent(ThreadIntent.DismissSchedule) })
+    BrDialog(
+        visible = state.confirmDelete != null,
+        onDismiss = { onIntent(ThreadIntent.CancelDelete) },
+        title = "Delete this message?",
+        message = "It's removed from this phone for good.",
+        confirmLabel = "Delete",
+        onConfirm = { onIntent(ThreadIntent.ConfirmDelete) },
+        destructive = true,
+    )
+    SchedulePicker(
+        onPick = { onIntent(ThreadIntent.ScheduleAt(it)) },
+        onDismiss = { onIntent(ThreadIntent.DismissSchedule) },
+        visible = state.showSchedulePicker,
+    )
+}
+
+/** The day above a run of messages: quiet centred text, no rules. */
+@Composable
+private fun DateDivider(label: String, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxWidth().padding(vertical = BrSpacing.M), contentAlignment = Alignment.Center) {
+        Text(label, style = BedrockTheme.typography.caption, color = BedrockTheme.colors.textTertiary)
     }
 }
 
 /** A scheduled message waiting above the composer: when, a preview, send now or cancel. */
 @Composable
 private fun ScheduledStrip(scheduled: ScheduledMessage, onSendNow: () -> Unit, onCancel: () -> Unit) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
+    val shape = BrShapes.Large
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = ScreenGutter - ObSpacing.XXS)
-            .clip(RoundedCornerShape(20.dp))
-            .glassEffect(colors.navScrim)
-            .border(1.dp, if (scheduled.failed) colors.error else colors.accentBorder, RoundedCornerShape(20.dp))
-            .padding(start = ObSpacing.L, end = ObSpacing.XS, top = ObSpacing.XS, bottom = ObSpacing.XS),
+            .padding(horizontal = BrSpacing.Gutter - BrSpacing.XXS)
+            .glass(shape)
+            .then(if (scheduled.failed) Modifier.border(1.dp, colors.critical.copy(alpha = 0.5f), shape) else Modifier)
+            .padding(start = BrSpacing.L, end = BrSpacing.XS, top = BrSpacing.XS, bottom = BrSpacing.XS),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(ObSpacing.S),
+        horizontalArrangement = Arrangement.spacedBy(BrSpacing.S),
     ) {
-        Icon(painterResource(R.drawable.ic_schedule_send), contentDescription = null, tint = colors.accentLight, modifier = Modifier.size(18.dp))
+        Icon(
+            painterResource(R.drawable.ic_schedule_send),
+            contentDescription = null,
+            tint = if (scheduled.failed) colors.critical else colors.accentSoft,
+            modifier = Modifier.size(18.dp),
+        )
         Column(Modifier.weight(1f)) {
             Text(
                 if (scheduled.failed) "Couldn't send · tap Send now to retry" else formatScheduleTime(scheduled.sendAt),
-                style = type.labelStrong,
-                color = if (scheduled.failed) colors.error else colors.accentLight,
+                style = type.label.copy(fontFeatureSettings = "tnum"),
+                color = if (scheduled.failed) colors.critical else colors.accentSoft,
             )
-            Text(scheduled.body, style = type.label, color = colors.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(scheduled.body, style = type.caption, color = colors.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        HeaderIconButton(R.drawable.ic_send, contentDescription = "Send now", onClick = onSendNow, tint = colors.textSecondary)
-        HeaderIconButton(R.drawable.ic_close, contentDescription = "Cancel scheduled message", onClick = onCancel, tint = colors.textSecondary)
+        BrIconButton(
+            painterResource(R.drawable.ic_send),
+            contentDescription = "Send now",
+            onClick = onSendNow,
+            variant = IconButtonVariant.Plain,
+            tint = colors.textSecondary,
+        )
+        BrIconButton(
+            painterResource(R.drawable.ic_close),
+            contentDescription = "Cancel scheduled message",
+            onClick = onCancel,
+            variant = IconButtonVariant.Plain,
+            tint = colors.textSecondary,
+        )
     }
+}
+
+/** Puts [text] on the clipboard; [sensitive] keeps it out of the clipboard preview (one-time codes). */
+private fun Context.copyToClipboard(label: String, text: String, sensitive: Boolean = false) {
+    val clip = ClipData.newPlainText(label, text)
+    if (sensitive) {
+        // The constant arrived in Android 13; Android 12 reads the same key.
+        val key = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ClipDescription.EXTRA_IS_SENSITIVE else "android.content.extra.IS_SENSITIVE"
+        clip.description.extras = PersistableBundle().apply { putBoolean(key, true) }
+    }
+    getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
 }
 
 /**

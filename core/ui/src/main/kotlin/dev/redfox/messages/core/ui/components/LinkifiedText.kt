@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import dev.redfox.messages.core.ui.format.Links
-import dev.redfox.obsidian.theme.ObsidianTheme
+import dev.redfox.bedrock.theme.BedrockTheme
 
 /**
  * Message text with its web links highlighted (accent, underlined) and tappable. Tapping opens
@@ -29,7 +29,7 @@ fun LinkifiedText(
     color: Color,
     modifier: Modifier = Modifier,
 ) {
-    val linkColor = ObsidianTheme.colors.accentLight
+    val linkColor = BedrockTheme.colors.accentSoft
     val annotated = remember(text, linkColor) { linkify(text, linkColor) }
     Text(annotated, style = style, color = color, modifier = modifier)
 }

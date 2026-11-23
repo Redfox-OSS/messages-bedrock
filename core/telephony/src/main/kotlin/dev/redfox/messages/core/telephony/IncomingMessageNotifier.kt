@@ -1,6 +1,7 @@
 package dev.redfox.messages.core.telephony
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -41,6 +42,8 @@ object MessageLaunchExtras {
  * copy action.
  */
 @Singleton
+// Every notify() call is behind canNotify(), which checks POST_NOTIFICATIONS; lint can't see through it.
+@SuppressLint("MissingPermission")
 class IncomingMessageNotifier @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {

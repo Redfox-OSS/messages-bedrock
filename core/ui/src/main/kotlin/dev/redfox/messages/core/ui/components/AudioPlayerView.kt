@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,9 +30,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import dev.redfox.messages.core.ui.R
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
+import dev.redfox.bedrock.components.BrProgressBar
+import dev.redfox.bedrock.effects.pressable
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import kotlinx.coroutines.delay
 
 /**
@@ -42,9 +41,10 @@ import kotlinx.coroutines.delay
  * The player is created on first play and released when the view leaves the screen.
  */
 @Composable
-fun AudioPlayerView(uri: String, modifier: Modifier = Modifier, accent: Color = ObsidianTheme.colors.accentLight) {
+fun AudioPlayerView(uri: String, modifier: Modifier = Modifier, accent: Color = BedrockTheme.colors.accentSoft) {
     val context = LocalContext.current
-    val colors = ObsidianTheme.colors
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
     var player by remember(uri) { mutableStateOf<MediaPlayer?>(null) }
     var playing by remember(uri) { mutableStateOf(false) }
     var positionMs by remember(uri) { mutableIntStateOf(0) }
@@ -91,16 +91,16 @@ fun AudioPlayerView(uri: String, modifier: Modifier = Modifier, accent: Color = 
     }
 
     Row(
-        modifier.padding(vertical = ObSpacing.XXS),
+        modifier.padding(vertical = BrSpacing.XXS),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(ObSpacing.M),
+        horizontalArrangement = Arrangement.spacedBy(BrSpacing.M),
     ) {
         Box(
             Modifier
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(accent.copy(alpha = 0.18f))
-                .pressable(haptic = HapticFeedbackType.ContextClick, onClick = ::toggle),
+                .pressable(pressedScale = 0.94f, haptic = HapticFeedbackType.ContextClick, onClick = ::toggle),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -109,14 +109,13 @@ fun AudioPlayerView(uri: String, modifier: Modifier = Modifier, accent: Color = 
                 tint = accent,
             )
         }
-        Column(Modifier.width(150.dp), verticalArrangement = Arrangement.spacedBy(ObSpacing.XS)) {
+        Column(Modifier.width(150.dp), verticalArrangement = Arrangement.spacedBy(BrSpacing.XS)) {
             val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
-            Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(colors.borderStrong)) {
-                Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(3.dp).background(accent))
-            }
+            BrProgressBar(progress, color = accent, trackColor = colors.lineStrong, height = 3.dp)
             Text(
                 formatDuration(if (playing || positionMs > 0) positionMs.toLong() else durationMs.toLong()),
-                style = ObsidianTheme.typography.caption,
+                // Tabular, so the time doesn't jitter as it counts.
+                style = type.figure.copy(fontSize = type.caption.fontSize, lineHeight = type.caption.lineHeight),
                 color = colors.textSecondary,
             )
         }

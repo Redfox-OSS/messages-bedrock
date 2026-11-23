@@ -1,7 +1,6 @@
 package dev.redfox.messages.core.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,12 +33,12 @@ import dev.redfox.messages.core.model.RichMedia
 import dev.redfox.messages.core.model.RichSuggestion
 import dev.redfox.messages.core.model.SuggestionAction
 import dev.redfox.messages.core.ui.R
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
+import dev.redfox.bedrock.effects.pressable
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrShapes
+import dev.redfox.bedrock.theme.BrSpacing
 
-private val CardShape = RoundedCornerShape(18.dp)
+private val CardShape = BrShapes.Large
 private val SingleCardWidth = 300.dp
 private val CarouselCardWidth = 248.dp
 
@@ -61,22 +59,25 @@ fun RichCardBubble(
     Column(modifier.fillMaxWidth()) {
         if (rich.isCarousel) {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = ScreenGutter),
-                horizontalArrangement = Arrangement.spacedBy(ObSpacing.S),
+                contentPadding = PaddingValues(horizontal = BrSpacing.Gutter),
+                horizontalArrangement = Arrangement.spacedBy(BrSpacing.S),
             ) {
                 itemsIndexed(rich.cards) { _, card ->
                     CardView(card, CarouselCardWidth, onSuggestion)
                 }
             }
         } else {
-            CardView(rich.cards.first(), SingleCardWidth, onSuggestion, Modifier.padding(horizontal = ScreenGutter))
+            CardView(rich.cards.first(), SingleCardWidth, onSuggestion, Modifier.padding(horizontal = BrSpacing.Gutter))
         }
         if (timeLabel != null) {
             Text(
                 timeLabel,
-                style = ObsidianTheme.typography.caption,
-                color = ObsidianTheme.colors.textTertiary,
-                modifier = Modifier.padding(top = ObSpacing.XXS, start = ScreenGutter + ObSpacing.S),
+                style = BedrockTheme.typography.figure.copy(
+                    fontSize = BedrockTheme.typography.caption.fontSize,
+                    lineHeight = BedrockTheme.typography.caption.lineHeight,
+                ),
+                color = BedrockTheme.colors.textTertiary,
+                modifier = Modifier.padding(top = BrSpacing.XXS, start = BrSpacing.Gutter + BrSpacing.S),
             )
         }
     }
@@ -89,21 +90,20 @@ private fun CardView(
     onSuggestion: (RichSuggestion) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
     val actions = card.suggestions.filter { it.action !is SuggestionAction.Reply }
 
     Column(
         modifier
             .width(width)
             .clip(CardShape)
-            .background(colors.card)
-            .border(1.dp, colors.border, CardShape),
+            .background(colors.surfaceRaised),
     ) {
         card.media?.let { MediaView(it) }
         Column(
-            Modifier.padding(horizontal = 14.dp, vertical = ObSpacing.M),
-            verticalArrangement = Arrangement.spacedBy(ObSpacing.XS),
+            Modifier.padding(horizontal = 14.dp, vertical = BrSpacing.M),
+            verticalArrangement = Arrangement.spacedBy(BrSpacing.XS),
         ) {
             card.title?.let {
                 Text(it, style = type.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = colors.textPrimary)
@@ -114,8 +114,8 @@ private fun CardView(
         }
         if (actions.isNotEmpty()) {
             Column(
-                Modifier.padding(start = ObSpacing.M, end = ObSpacing.M, bottom = ObSpacing.M),
-                verticalArrangement = Arrangement.spacedBy(ObSpacing.XS),
+                Modifier.padding(start = BrSpacing.M, end = BrSpacing.M, bottom = BrSpacing.M),
+                verticalArrangement = Arrangement.spacedBy(BrSpacing.XS),
             ) {
                 actions.forEach { SuggestionButton(it, onSuggestion) }
             }
@@ -125,7 +125,7 @@ private fun CardView(
 
 @Composable
 private fun MediaView(media: RichMedia) {
-    val colors = ObsidianTheme.colors
+    val colors = BedrockTheme.colors
     // Prefer the sender's real aspect ratio; fall back to its height hint.
     val sized = media.aspectRatio?.let { Modifier.aspectRatio(it.coerceIn(0.6f, 2.4f)) }
         ?: Modifier.height(
@@ -136,7 +136,7 @@ private fun MediaView(media: RichMedia) {
             }
         )
     Box(
-        Modifier.fillMaxWidth().then(sized).background(colors.tile),
+        Modifier.fillMaxWidth().then(sized).background(colors.surfaceHigh),
         contentAlignment = Alignment.Center,
     ) {
         // The image or video lives on the business's server, and the app has no internet access
@@ -151,7 +151,7 @@ private fun MediaView(media: RichMedia) {
 
 @Composable
 private fun SuggestionButton(suggestion: RichSuggestion, onSuggestion: (RichSuggestion) -> Unit) {
-    val colors = ObsidianTheme.colors
+    val colors = BedrockTheme.colors
     val icon = when (suggestion.action) {
         is SuggestionAction.Dial -> R.drawable.ic_call
         else -> R.drawable.ic_open_in_new
@@ -159,22 +159,21 @@ private fun SuggestionButton(suggestion: RichSuggestion, onSuggestion: (RichSugg
     Row(
         Modifier
             .fillMaxWidth()
-            .pressable(pressedScale = 0.96f) { onSuggestion(suggestion) }
+            .pressable(pressedScale = 0.97f) { onSuggestion(suggestion) }
             .clip(CircleShape)
             .background(colors.accentContainer)
-            .border(1.dp, colors.accentBorder, CircleShape)
-            .padding(horizontal = ObSpacing.L, vertical = 10.dp),
+            .padding(horizontal = BrSpacing.L, vertical = 10.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painterResource(icon), null, tint = colors.accentLight, modifier = Modifier.size(16.dp))
+        Icon(painterResource(icon), null, tint = colors.accentSoft, modifier = Modifier.size(16.dp))
         Text(
             suggestion.label,
-            style = ObsidianTheme.typography.labelStrong,
-            color = colors.accentLight,
+            style = BedrockTheme.typography.label,
+            color = colors.accentSoft,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = ObSpacing.S),
+            modifier = Modifier.padding(start = BrSpacing.S),
         )
     }
 }

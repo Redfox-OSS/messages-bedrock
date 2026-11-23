@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Voice messages (MMS); asked for the first time the mic is tapped. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- An SMS app needs a phone radio; say so, rather than let the permissions imply it. -->
+    <uses-feature android:name="android.hardware.telephony" android:required="true" />
 
     <application
         android:name=".MessagesApplication"

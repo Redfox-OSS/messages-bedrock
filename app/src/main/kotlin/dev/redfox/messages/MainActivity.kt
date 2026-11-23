@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -26,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.haze.rememberHazeState
@@ -40,16 +43,16 @@ import dev.redfox.messages.feature.search.SearchOverlay
 import dev.redfox.messages.feature.thread.ThreadKey
 import dev.redfox.messages.feature.thread.newchat.NewConversationKey
 import dev.redfox.messages.navigation.MessagesNavHost
-import dev.redfox.messages.navigation.NewMessageItem
 import dev.redfox.messages.navigation.SearchItem
 import dev.redfox.messages.navigation.TabItems
 import dev.redfox.messages.navigation.Tabs
 import dev.redfox.messages.navigation.rememberNavigator
-import dev.redfox.obsidian.effects.LocalHazeState
-import dev.redfox.obsidian.motion.ObMotion
-import dev.redfox.obsidian.navigation.FloatingNavBar
-import dev.redfox.obsidian.navigation.rememberCompactNavState
-import dev.redfox.obsidian.theme.ObsidianTheme
+import dev.redfox.bedrock.effects.LocalHazeState
+import dev.redfox.bedrock.motion.BrDurations
+import dev.redfox.bedrock.motion.BrMotion
+import dev.redfox.bedrock.navigation.BrNavBar
+import dev.redfox.bedrock.navigation.rememberCompactNavState
+import dev.redfox.bedrock.theme.BedrockTheme
 import kotlinx.coroutines.flow.Flow
 
 @AndroidEntryPoint
@@ -58,7 +61,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Obsidian is always dark: light system-bar icons regardless of the system theme.
+        // Bedrock is always dark: light system-bar icons regardless of the system theme.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -72,7 +75,7 @@ class MainActivity : ComponentActivity() {
             MessagesTheme(accent = settings?.accent ?: AppAccent.Default) {
                 val hazeState = rememberHazeState()
                 CompositionLocalProvider(LocalHazeState provides hazeState) {
-                    Box(Modifier.fillMaxSize().background(ObsidianTheme.colors.background)) {
+                    Box(Modifier.fillMaxSize().background(BedrockTheme.colors.background)) {
                         // Wait for the first settings read so the start destination is right.
                         if (settings != null) {
                             MessagesShell(
@@ -159,18 +162,19 @@ private fun MessagesShell(
         AnimatedVisibility(
             visible = selectedTab >= 0 && !searchOpen,
             modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically(ObMotion.gentle()) { it } + fadeIn(),
-            exit = slideOutVertically(ObMotion.gentle()) { it } + fadeOut(),
+            // Rises calmly when returning from a pushed screen; sinks away when leaving.
+            enter = slideInVertically(BrMotion.glide(IntOffset.VisibilityThreshold)) { it / 2 } +
+                fadeIn(tween(BrDurations.Enter, easing = BrMotion.Calm)),
+            exit = slideOutVertically(BrMotion.settle(IntOffset.VisibilityThreshold)) { it / 2 } +
+                fadeOut(tween(BrDurations.Fade, easing = BrMotion.Calm)),
         ) {
-            FloatingNavBar(
+            BrNavBar(
                 items = TabItems,
                 selectedIndex = selectedTab,
                 onSelect = { navigator.selectTab(Tabs[it].key) },
+                accessory = SearchItem,
+                onAccessory = { searchOpen = true },
                 compact = compactNav.compact,
-                action = NewMessageItem,
-                onAction = { navigator.navigate(NewConversationKey()) },
-                pill = SearchItem,
-                onPill = { searchOpen = true },
             )
         }
         SearchOverlay(

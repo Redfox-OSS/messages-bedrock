@@ -1,12 +1,5 @@
 package dev.redfox.messages.navigation
 
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -26,8 +19,8 @@ import dev.redfox.messages.feature.thread.newchat.NewConversationKey
 import dev.redfox.messages.feature.thread.newchat.NewConversationRoute
 import dev.redfox.messages.saved.SavedKey
 import dev.redfox.messages.saved.SavedRoute
-import dev.redfox.obsidian.motion.ObMotion
-import dev.redfox.obsidian.motion.RevealScope
+import dev.redfox.bedrock.motion.BrTransitions
+import dev.redfox.bedrock.motion.RevealScope
 
 @Composable
 fun MessagesNavHost(
@@ -44,9 +37,9 @@ fun MessagesNavHost(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        transitionSpec = { forwardTransition() },
-        popTransitionSpec = { popTransition() },
-        predictivePopTransitionSpec = { popTransition() },
+        transitionSpec = { BrTransitions.push() },
+        popTransitionSpec = { BrTransitions.pop() },
+        predictivePopTransitionSpec = { BrTransitions.predictivePop() },
         entryProvider = entryProvider {
             entry<OnboardingKey> { key ->
                 Reveal(navigator, key) { OnboardingRoute(onFinished = { navigator.resetTo(ConversationsKey) }) }
@@ -56,6 +49,7 @@ fun MessagesNavHost(
                     ConversationsRoute(
                         onOpenThread = { navigator.navigate(ThreadKey(it)) },
                         onOpenSettings = { navigator.navigate(SettingsKey) },
+                        onNewMessage = { navigator.navigate(NewConversationKey()) },
                     )
                 }
             }
@@ -94,12 +88,3 @@ fun MessagesNavHost(
 private fun Reveal(navigator: Navigator, key: NavKey, content: @Composable () -> Unit) {
     RevealScope(enabled = navigator.shouldReveal(key), content = content)
 }
-
-// Pushes drift in from the trailing edge on a gentle spring; pops dissolve back out.
-private fun forwardTransition(): ContentTransform =
-    (slideInHorizontally(ObMotion.gentle()) { it / 12 } + fadeIn(tween(220))) togetherWith
-        fadeOut(tween(120))
-
-private fun popTransition(): ContentTransform =
-    fadeIn(tween(220)) togetherWith
-        (slideOutHorizontally(ObMotion.gentle()) { it / 12 } + fadeOut(tween(160)))

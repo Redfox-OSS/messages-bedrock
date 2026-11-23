@@ -8,8 +8,8 @@ android {
 }
 
 dependencies {
-    // Obsidian brings Compose UI, Material 3 and Haze as `api`; re-exported so features see one design system.
-    api(libs.obsidian)
+    // Bedrock brings Compose UI, Material 3 and Haze as `api`; re-exported so features see one design system.
+    api(libs.bedrock)
     api(libs.androidx.lifecycle.viewmodel.compose)
     api(libs.androidx.lifecycle.runtime.compose)
     api(libs.kotlinx.collections.immutable)

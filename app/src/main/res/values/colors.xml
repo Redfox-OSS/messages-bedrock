@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Window / splash only, before Compose draws. Mirrors ObsidianNeutrals.Dark background
-         and ObsidianAccent.Electric; everything in Compose reads ObsidianTheme instead. -->
-    <color name="window_background">#FF131316</color>
+    <!-- Window / splash only, before Compose draws. Mirrors BedrockNeutrals.Basalt background
+         everything in Compose reads BedrockTheme instead. -->
+    <color name="window_background">#FF111112</color>
     <!-- Launcher icon ("Corner", Electric): white bubble on an Electric-blue tile. -->
     <color name="launcher_background">#FF3D9BFF</color>
     <color name="launcher_bubble">#FFFFFFFF</color>

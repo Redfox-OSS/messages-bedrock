@@ -20,16 +20,17 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Obsidian design system, published from github.com/Redfox-OSS/obsidian. Kept on one line so
-        // F-Droid's recipe can delete it: F-Droid builds Obsidian from source instead (see below).
-        maven("https://redfox-oss.github.io/obsidian/maven") { content { includeGroup("dev.redfox") } }
+        // Bedrock design system, published from github.com/Redfox-OSS/bedrock.
+        maven("https://redfox-oss.github.io/bedrock/maven") { content { includeGroup("dev.redfox") } }
     }
 }
 
-// -Pobsidian.fromSource=true builds Obsidian from the external/obsidian submodule (pinned to the
-// release in libs.versions.toml) instead of downloading it. F-Droid builds this way.
-if (providers.gradleProperty("obsidian.fromSource").orNull == "true") {
-    includeBuild("external/obsidian")
+// -PlocalBedrock builds Bedrock from a sibling checkout (../Bedrock) instead of the published
+// release, to try a library change in this app before it ships.
+if (providers.gradleProperty("localBedrock").isPresent) {
+    includeBuild("../Bedrock") {
+        dependencySubstitution { substitute(module("dev.redfox:bedrock")).using(project(":bedrock")) }
+    }
 }
 
 rootProject.name = "Messages"

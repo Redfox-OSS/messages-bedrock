@@ -14,8 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,16 +37,16 @@ import dev.redfox.messages.core.ui.mvi.MviViewModel
 import dev.redfox.messages.core.ui.mvi.UiEffect
 import dev.redfox.messages.core.ui.mvi.UiIntent
 import dev.redfox.messages.core.ui.mvi.UiState
-import dev.redfox.obsidian.components.EmptyState
-import dev.redfox.obsidian.components.HeaderIconButton
-import dev.redfox.obsidian.components.ObAlertDialog
-import dev.redfox.obsidian.components.ObCard
-import dev.redfox.obsidian.effects.glassSource
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.motion.revealOnEnter
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
+import dev.redfox.bedrock.components.BrCard
+import dev.redfox.bedrock.components.BrDialog
+import dev.redfox.bedrock.components.BrIconButton
+import dev.redfox.bedrock.components.EmptyState
+import dev.redfox.bedrock.components.IconButtonVariant
+import dev.redfox.bedrock.effects.glassSource
+import dev.redfox.bedrock.motion.BrMotion
+import dev.redfox.bedrock.motion.revealOnEnter
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -125,9 +131,9 @@ fun ScheduledScreen(state: ScheduledState, padding: PaddingValues, onIntent: (Sc
         if (state.loaded && state.items.isEmpty()) {
             Box(Modifier.glassSource().fillMaxSize().padding(padding)) {
                 EmptyState(
-                    icon = R.drawable.ic_schedule,
+                    icon = painterResource(R.drawable.ic_schedule),
                     title = "Nothing scheduled",
-                    subtitle = "Long-press the send button in a conversation to send a message later.",
+                    message = "Long-press the send button in a conversation to send a message later.",
                 )
             }
         } else {
@@ -136,60 +142,81 @@ fun ScheduledScreen(state: ScheduledState, padding: PaddingValues, onIntent: (Sc
                 contentPadding = PaddingValues(
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding(),
-                    start = ScreenGutter,
-                    end = ScreenGutter,
+                    start = BrSpacing.Gutter,
+                    end = BrSpacing.Gutter,
                 ),
-                verticalArrangement = Arrangement.spacedBy(ObSpacing.M),
+                verticalArrangement = Arrangement.spacedBy(BrSpacing.M),
             ) {
                 itemsIndexed(state.items, key = { _, item -> item.id }) { index, message ->
                     ScheduledCard(
                         message = message,
                         onIntent = onIntent,
-                        modifier = Modifier.animateItem().then(if (index < 10) Modifier.revealOnEnter(index) else Modifier),
+                        modifier = Modifier
+                            .animateItem(placementSpec = BrMotion.settle(IntOffset.VisibilityThreshold))
+                            .then(if (index < 10) Modifier.revealOnEnter(index) else Modifier),
                     )
                 }
             }
         }
     }
 
-    if (state.rescheduling != null) {
-        SchedulePicker(
-            title = "Change time",
-            onPick = { onIntent(ScheduledIntent.TimePicked(it)) },
-            onDismiss = { onIntent(ScheduledIntent.DismissPicker) },
-        )
-    }
-    state.confirmCancel?.let { message ->
-        ObAlertDialog(
-            title = "Cancel scheduled message?",
-            text = "The message to ${message.title} won't be sent.",
-            confirmLabel = "Cancel message",
-            dismissLabel = "Keep",
-            destructive = true,
-            onConfirm = { onIntent(ScheduledIntent.ConfirmCancel) },
-            onDismiss = { onIntent(ScheduledIntent.KeepScheduled) },
-        )
-    }
+    SchedulePicker(
+        title = "Change time",
+        onPick = { onIntent(ScheduledIntent.TimePicked(it)) },
+        onDismiss = { onIntent(ScheduledIntent.DismissPicker) },
+        visible = state.rescheduling != null,
+    )
+    // Always composed so it can ease out; it keeps naming the message while it leaves.
+    var lastCancel by remember { mutableStateOf(state.confirmCancel) }
+    if (state.confirmCancel != null) lastCancel = state.confirmCancel
+    BrDialog(
+        visible = state.confirmCancel != null,
+        onDismiss = { onIntent(ScheduledIntent.KeepScheduled) },
+        title = "Cancel scheduled message?",
+        message = "The message to ${lastCancel?.title.orEmpty()} won't be sent.",
+        confirmLabel = "Cancel message",
+        onConfirm = { onIntent(ScheduledIntent.ConfirmCancel) },
+        dismissLabel = "Keep",
+        destructive = true,
+    )
 }
 
 @Composable
 private fun ScheduledCard(message: ScheduledMessage, onIntent: (ScheduledIntent) -> Unit, modifier: Modifier = Modifier) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
-    ObCard(modifier.fillMaxWidth().pressable(pressedScale = 0.98f) { onIntent(ScheduledIntent.Open(message)) }) {
-        Column(verticalArrangement = Arrangement.spacedBy(ObSpacing.S)) {
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
+    BrCard(modifier.fillMaxWidth(), onClick = { onIntent(ScheduledIntent.Open(message)) }) {
+        Column(verticalArrangement = Arrangement.spacedBy(BrSpacing.S)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(message.title, style = type.labelStrong, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(message.title, style = type.label, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         if (message.failed) "Couldn't send at ${formatScheduleTime(message.sendAt)}" else formatScheduleTime(message.sendAt),
-                        style = type.caption,
-                        color = if (message.failed) colors.error else colors.accentLight,
+                        style = type.caption.copy(fontFeatureSettings = "tnum"),
+                        color = if (message.failed) colors.critical else colors.accentSoft,
                     )
                 }
-                HeaderIconButton(R.drawable.ic_send, contentDescription = "Send now", onClick = { onIntent(ScheduledIntent.SendNow(message)) }, tint = colors.textSecondary)
-                HeaderIconButton(R.drawable.ic_schedule, contentDescription = "Change time", onClick = { onIntent(ScheduledIntent.ChangeTime(message)) }, tint = colors.textSecondary)
-                HeaderIconButton(R.drawable.ic_delete, contentDescription = "Cancel", onClick = { onIntent(ScheduledIntent.Cancel(message)) }, tint = colors.textSecondary)
+                BrIconButton(
+                    painterResource(R.drawable.ic_send),
+                    contentDescription = "Send now",
+                    onClick = { onIntent(ScheduledIntent.SendNow(message)) },
+                    variant = IconButtonVariant.Plain,
+                    tint = colors.textSecondary,
+                )
+                BrIconButton(
+                    painterResource(R.drawable.ic_schedule),
+                    contentDescription = "Change time",
+                    onClick = { onIntent(ScheduledIntent.ChangeTime(message)) },
+                    variant = IconButtonVariant.Plain,
+                    tint = colors.textSecondary,
+                )
+                BrIconButton(
+                    painterResource(R.drawable.ic_delete),
+                    contentDescription = "Cancel",
+                    onClick = { onIntent(ScheduledIntent.Cancel(message)) },
+                    variant = IconButtonVariant.Plain,
+                    tint = colors.textSecondary,
+                )
             }
             Text(message.body, style = type.body, color = colors.textPrimary, maxLines = 4, overflow = TextOverflow.Ellipsis)
         }

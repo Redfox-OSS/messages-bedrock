@@ -18,9 +18,9 @@ android {
     namespace = "dev.redfox.messages"
 
     defaultConfig {
-        applicationId = "dev.redfox.messages"
-        // Static literals: F-Droid reads them from this file to detect new releases.
-        versionCode = 4
+        // Its own ID, so it installs beside the Obsidian Messages (only one can be the default SMS app).
+        applicationId = "dev.redfox.messages.bedrock"
+        versionCode = 1
         versionName = "1.0.0"
     }
 
@@ -44,9 +44,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the release key when keystore.properties exists; otherwise left unsigned,
-            // which is what F-Droid's build server expects (it then checks the result against the
-            // signed APK on the GitHub release; see fdroid/README.md).
+            // Signed with the release key when keystore.properties exists; otherwise left unsigned.
             if (hasReleaseKey) signingConfig = signingConfigs.getByName("release")
         }
     }

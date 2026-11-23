@@ -16,6 +16,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,15 +34,15 @@ import dev.redfox.messages.core.ui.mvi.MviViewModel
 import dev.redfox.messages.core.ui.mvi.UiEffect
 import dev.redfox.messages.core.ui.mvi.UiIntent
 import dev.redfox.messages.core.ui.mvi.UiState
-import dev.redfox.obsidian.components.EmptyState
-import dev.redfox.obsidian.components.HeaderIconButton
-import dev.redfox.obsidian.components.ObCard
-import dev.redfox.obsidian.effects.glassSource
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.motion.revealOnEnter
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
+import dev.redfox.bedrock.components.BrCard
+import dev.redfox.bedrock.components.BrIconButton
+import dev.redfox.bedrock.components.EmptyState
+import dev.redfox.bedrock.components.IconButtonVariant
+import dev.redfox.bedrock.effects.glassSource
+import dev.redfox.bedrock.motion.BrMotion
+import dev.redfox.bedrock.motion.revealOnEnter
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -112,9 +115,9 @@ fun StarredScreen(state: StarredState, padding: PaddingValues, onIntent: (Starre
         if (state.loaded && state.items.isEmpty()) {
             Box(Modifier.glassSource().fillMaxSize().padding(padding)) {
                 EmptyState(
-                    icon = R.drawable.ic_star,
+                    icon = painterResource(R.drawable.ic_star),
                     title = "Nothing starred",
-                    subtitle = "Long-press any message and star it to keep it here.",
+                    message = "Long-press any message and star it to keep it here.",
                 )
             }
         } else {
@@ -123,10 +126,10 @@ fun StarredScreen(state: StarredState, padding: PaddingValues, onIntent: (Starre
                 contentPadding = PaddingValues(
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding(),
-                    start = ScreenGutter,
-                    end = ScreenGutter,
+                    start = BrSpacing.Gutter,
+                    end = BrSpacing.Gutter,
                 ),
-                verticalArrangement = Arrangement.spacedBy(ObSpacing.M),
+                verticalArrangement = Arrangement.spacedBy(BrSpacing.M),
             ) {
                 itemsIndexed(state.items, key = { _, item -> item.message.key }) { index, item ->
                     StarredCard(
@@ -134,7 +137,7 @@ fun StarredScreen(state: StarredState, padding: PaddingValues, onIntent: (Starre
                         onOpen = { onIntent(StarredIntent.Open(item)) },
                         onUnstar = { onIntent(StarredIntent.Unstar(item)) },
                         modifier = Modifier
-                            .animateItem()
+                            .animateItem(placementSpec = BrMotion.settle(IntOffset.VisibilityThreshold))
                             .then(if (index < 10) Modifier.revealOnEnter(index) else Modifier),
                     )
                 }
@@ -145,21 +148,27 @@ fun StarredScreen(state: StarredState, padding: PaddingValues, onIntent: (Starre
 
 @Composable
 private fun StarredCard(item: StarredItem, onOpen: () -> Unit, onUnstar: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
     val message = item.message
-    ObCard(modifier.fillMaxWidth().pressable(pressedScale = 0.98f, onClick = onOpen)) {
-        Column(verticalArrangement = Arrangement.spacedBy(ObSpacing.S)) {
+    BrCard(modifier.fillMaxWidth(), onClick = onOpen) {
+        Column(verticalArrangement = Arrangement.spacedBy(BrSpacing.S)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(message.threadTitle, style = type.labelStrong, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(message.threadTitle, style = type.label, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         (if (message.sender == null) "You · " else "") + item.timeLabel,
-                        style = type.caption,
+                        style = type.caption.copy(fontFeatureSettings = "tnum"),
                         color = colors.textTertiary,
                     )
                 }
-                HeaderIconButton(R.drawable.ic_star_filled, contentDescription = "Unstar", onClick = onUnstar, tint = colors.accentLight)
+                BrIconButton(
+                    painterResource(R.drawable.ic_star_filled),
+                    contentDescription = "Unstar",
+                    onClick = onUnstar,
+                    variant = IconButtonVariant.Plain,
+                    tint = colors.accentSoft,
+                )
             }
             LinkifiedText(message.body, style = type.body, color = colors.textPrimary)
         }

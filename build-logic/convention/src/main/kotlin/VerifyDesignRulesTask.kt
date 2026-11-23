@@ -9,9 +9,9 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Fails the build when feature code bypasses the Obsidian design system:
- * Material tokens instead of `ObsidianTheme`, ripple clicks instead of `Modifier.pressable`,
- * or hard-coded colours instead of tokens.
+ * Fails the build when feature code bypasses the Bedrock design system:
+ * Material tokens instead of `BedrockTheme`, ripple clicks instead of `Modifier.pressable`,
+ * hard-coded colours instead of tokens, glows, or springs that overshoot.
  */
 abstract class VerifyDesignRulesTask : DefaultTask() {
 
@@ -24,7 +24,7 @@ abstract class VerifyDesignRulesTask : DefaultTask() {
 
     init {
         group = "verification"
-        description = "Checks feature sources against the Obsidian design rules."
+        description = "Checks feature sources against the Bedrock design rules."
     }
 
     @TaskAction
@@ -38,7 +38,7 @@ abstract class VerifyDesignRulesTask : DefaultTask() {
         }
         report.get().asFile.writeText(violations.joinToString("\n"))
         if (violations.isNotEmpty()) {
-            throw GradleException("Obsidian design rule violations:\n" + violations.joinToString("\n"))
+            throw GradleException("Bedrock design rule violations:\n" + violations.joinToString("\n"))
         }
     }
 
@@ -46,11 +46,14 @@ abstract class VerifyDesignRulesTask : DefaultTask() {
 
     private companion object {
         val RULES = listOf(
-            Rule(Regex("""\bMaterialTheme\."""), "use ObsidianTheme.colors / ObsidianTheme.typography, not MaterialTheme"),
+            Rule(Regex("""\bMaterialTheme\."""), "use BedrockTheme.colors / BedrockTheme.typography, not MaterialTheme"),
             Rule(Regex("""\.clickable\s*[({]"""), "use Modifier.pressable {} (no ripples)"),
             Rule(Regex("""\.combinedClickable\s*[({]"""), "use Modifier.pressable(onLongClick = …) {}"),
-            Rule(Regex("""\bripple\s*\("""), "ripples are not part of Obsidian; use Modifier.pressable"),
-            Rule(Regex("""\bColor\s*\(\s*0x"""), "hard-coded colour; use an ObsidianTheme.colors token"),
+            Rule(Regex("""\bripple\s*\("""), "ripples are not part of Bedrock; use Modifier.pressable"),
+            Rule(Regex("""\bColor\s*\(\s*0x"""), "hard-coded colour; use a BedrockTheme.colors token"),
+            Rule(Regex("""\bdev\.redfox\.obsidian\b"""), "Obsidian is gone; use dev.redfox.bedrock"),
+            Rule(Regex("""\.(glow|breathingGlow|ambientFloat)\s*\("""), "no glows in Bedrock: colour lives inside surfaces"),
+            Rule(Regex("""dampingRatio\s*=\s*0\."""), "nothing overshoots: use BrMotion.quick/settle/glide"),
         )
     }
 }

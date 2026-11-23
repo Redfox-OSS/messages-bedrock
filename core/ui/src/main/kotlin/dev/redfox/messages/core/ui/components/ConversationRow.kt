@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,21 +28,20 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.redfox.bedrock.components.BrBadge
+import dev.redfox.bedrock.effects.pressable
+import dev.redfox.bedrock.motion.BrMotion
+import dev.redfox.bedrock.theme.BedrockTheme
+import dev.redfox.bedrock.theme.BrSpacing
 import dev.redfox.messages.core.model.Conversation
 import dev.redfox.messages.core.ui.R
-import dev.redfox.obsidian.components.CountBadge
-import dev.redfox.obsidian.effects.pressable
-import dev.redfox.obsidian.motion.ObMotion
-import dev.redfox.obsidian.theme.ObSpacing
-import dev.redfox.obsidian.theme.ObsidianTheme
-import dev.redfox.obsidian.theme.ScreenGutter
 
 /**
  * Inbox row (PLAN.md §7.3): avatar, name, snippet, time and unread badge. Unread rows get a
- * SemiBold name, primary-coloured snippet and an accent time, like Google Messages.
+ * SemiBold name, primary-coloured snippet and a soft accent time, like Google Messages.
  *
- * [selected]: picked in the inbox's selection mode; the avatar turns into an accent check and the
- * row takes an accent tint.
+ * [selected]: picked in the inbox's selection mode; the avatar eases into an accent check and the
+ * row takes a quiet accent tint.
  */
 @Composable
 fun ConversationRow(
@@ -53,40 +52,42 @@ fun ConversationRow(
     onLongClick: (() -> Unit)? = null,
     selected: Boolean = false,
 ) {
-    val colors = ObsidianTheme.colors
-    val type = ObsidianTheme.typography
+    val colors = BedrockTheme.colors
+    val type = BedrockTheme.typography
     val unread = conversation.isUnread
     val tint by animateColorAsState(
         if (selected) colors.accentContainer else colors.accentContainer.copy(alpha = 0f),
-        ObMotion.snappy(),
+        BrMotion.quick(),
         label = "selectedTint",
     )
-    val check by animateFloatAsState(if (selected) 1f else 0f, ObMotion.bouncy(), label = "selectedCheck")
+    val check by animateFloatAsState(if (selected) 1f else 0f, BrMotion.settle(), label = "selectedCheck")
 
     Row(
         modifier
             .fillMaxWidth()
             .background(tint)
             .semantics { this.selected = selected }
-            .pressable(pressedScale = 0.985f, onLongClick = onLongClick, onClick = onClick)
-            .padding(horizontal = ScreenGutter, vertical = ObSpacing.M),
+            .pressable(pressedScale = 0.99f, onLongClick = onLongClick, onClick = onClick)
+            .padding(horizontal = BrSpacing.Gutter, vertical = BrSpacing.M),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Avatar(
                 conversation.participants,
-                modifier = Modifier.graphicsLayer { alpha = 1f - check.coerceIn(0f, 1f) },
+                modifier = Modifier.graphicsLayer { alpha = 1f - check },
             )
             Box(
                 Modifier
                     .size(48.dp)
                     .graphicsLayer {
-                        scaleX = check
-                        scaleY = check
-                        alpha = check.coerceIn(0f, 1f)
+                        // Eases in from slightly smaller while fading: present, not popped.
+                        val s = 0.8f + 0.2f * check
+                        scaleX = s
+                        scaleY = s
+                        alpha = check
                     }
                     .clip(CircleShape)
-                    .background(colors.accent),
+                    .background(colors.accentMain),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -97,7 +98,7 @@ fun ConversationRow(
                 )
             }
         }
-        Spacer(Modifier.width(ObSpacing.L))
+        Spacer(Modifier.width(BrSpacing.L))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -108,23 +109,24 @@ fun ConversationRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.width(ObSpacing.S))
+                Spacer(Modifier.width(BrSpacing.S))
                 if (conversation.isPinned) {
                     Icon(
                         painterResource(R.drawable.ic_keep),
                         contentDescription = "Pinned",
                         tint = colors.textTertiary,
-                        modifier = Modifier.padding(end = ObSpacing.XXS).size(14.dp),
+                        modifier = Modifier.padding(end = BrSpacing.XS).size(14.dp),
                     )
                 }
                 Text(
                     timeLabel,
-                    style = type.label,
-                    color = if (unread) colors.accentLight else colors.textTertiary,
+                    // Tabular figures at caption size, so times line up down the list.
+                    style = type.figure.copy(fontSize = type.caption.fontSize, lineHeight = type.caption.lineHeight),
+                    color = if (unread) colors.accentSoft else colors.textTertiary,
                 )
             }
             Spacer(Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(ObSpacing.S)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(BrSpacing.S)) {
                 Text(
                     conversation.snippet.replace('\n', ' ').ifBlank { if (conversation.hasAttachment) "Attachment" else "" },
                     style = type.body,
@@ -133,7 +135,7 @@ fun ConversationRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                if (unread) CountBadge(conversation.unreadCount)
+                if (unread) BrBadge(conversation.unreadCount)
             }
         }
     }
